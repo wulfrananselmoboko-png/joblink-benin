@@ -1,0 +1,8 @@
+config/config.php
+wp-config.php
+uploads/*
+!uploads/.gitkeep
+.env
+*.log
+Thumbs.db
+.DS_Store
