@@ -1,22 +1,23 @@
 <?php
-session_name('joblink_admin');
+// Nom de session propre à l'espace candidat : il ne se mélange pas avec celle de l'admin
+session_name('joblink_candidat');
 session_start();
 
-function adminConnecte(): bool
+function candidatConnecte(): bool
 {
-    return isset($_SESSION['admin_id']);
+    return isset($_SESSION['candidat_id']);
 }
 
 // À appeler en haut de chaque page protégée
-function exigerConnexion(): void
+function exigerConnexionCandidat(): void
 {
-    if (!adminConnecte()) {
+    if (!candidatConnecte()) {
         header('Location: login.php');
         exit;
     }
 }
 
-// Message affiché après une action (succès ou erreur)
+// Message affiché une seule fois après une action
 function flash(string $type, string $message): void
 {
     $_SESSION['flash'] = ['type' => $type, 'message' => $message];
@@ -33,7 +34,7 @@ function afficherFlash(): void
     }
 }
 
-// Protection CSRF : un jeton secret propre à la session
+// Protection CSRF
 function csrfToken(): string
 {
     if (empty($_SESSION['csrf'])) {
