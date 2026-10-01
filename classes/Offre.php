@@ -209,4 +209,21 @@ class Offre
         $l = $stmt->fetch();
         return $l ?: null;
     }
+        // Chaque offre avec son nombre de candidatures par statut (tableau récapitulatif)
+    public static function avecNbCandidatures(): array
+    {
+        $pdo = Database::getConnection();
+        return $pdo->query(
+            "SELECT o.id, o.titre, o.statut, e.nom AS entreprise,
+                    COUNT(c.id) AS nb_total,
+                    COALESCE(SUM(c.statut = 'en_attente'), 0) AS nb_attente,
+                    COALESCE(SUM(c.statut = 'retenue'), 0)    AS nb_retenues,
+                    COALESCE(SUM(c.statut = 'refusee'), 0)    AS nb_refusees
+             FROM offre o
+             INNER JOIN entreprise e ON e.id = o.id_entreprise
+             LEFT JOIN candidature c ON c.id_offre = o.id
+             GROUP BY o.id, o.titre, o.statut, e.nom
+             ORDER BY nb_total DESC, o.date_publication DESC"
+        )->fetchAll();
+    }
 }

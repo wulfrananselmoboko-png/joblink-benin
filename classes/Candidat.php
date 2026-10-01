@@ -3,6 +3,7 @@ require_once __DIR__ . '/Database.php';
 
 class Candidat
 {
+     public const STATUTS = ['actif', 'inactif'];
     public function __construct(
         private ?int $id,
         private string $nom,
@@ -123,5 +124,46 @@ class Candidat
             ':cv'        => $this->cvFichier,
             ':id'        => $this->id,
         ]);
+    }
+        // Liste pour l'administrateur, avec recherche et filtre sur le statut
+    public static function liste(string $recherche = '', string $statut = ''): array
+    {
+        $sql = 'SELECT c.id, c.nom, c.prenom, c.email, c.telephone, c.statut, c.date_inscription,
+                       (c.cv_fichier IS NOT NULL) AS a_cv,
+                       v.libelle AS ville,
+                       (SELECT COUNT(*) FROM candidature ca WHERE ca.id_candidat = c.id) AS nb_candidatures
+                FROM candidat c
+                LEFT JOIN ville v ON v.id = c.id_ville
+                WHERE 1 = 1';
+        $params = [];
+
+        if ($recherche !== '') {
+            $sql .= ' AND (c.nom LIKE :r1 OR c.prenom LIKE :r2 OR c.email LIKE :r3)';
+            $like = '%' . addcslashes($recherche, '%_\\') . '%';
+            $params[':r1'] = $like;
+            $params[':r2'] = $like;
+            $params[':r3'] = $like;
+        }
+        if ($statut !== '' && in_array($statut, self::STATUTS, true)) {
+            $sql .= ' AND c.statut = :statut';
+            $params[':statut'] = $statut;
+        }
+        $sql .= ' ORDER BY c.date_inscription DESC, c.id DESC';
+
+        $pdo  = Database::getConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    // Active ou désactive un compte
+    public static function changerStatut(int $id, string $statut): void
+    {
+        if (!in_array($statut, self::STATUTS, true)) {
+            throw new InvalidArgumentException('Statut invalide.');
+        }
+        $pdo  = Database::getConnection();
+        $stmt = $pdo->prepare('UPDATE candidat SET statut = :statut WHERE id = :id');
+        $stmt->execute([':statut' => $statut, ':id' => $id]);
     }
 }

@@ -71,16 +71,19 @@ class GestionCv
         }
     }
 
-    // Envoie le PDF au navigateur, puis arrête le script
-    public static function envoyer(string $nom): void
+        // Envoie le PDF au navigateur (affichage ou téléchargement), puis arrête le script
+    public static function envoyer(string $nom, bool $telecharger = false, string $nomAffiche = 'cv.pdf'): void
     {
         $chemin = self::dossier() . $nom;
         if (!self::nomValide($nom) || !is_file($chemin)) {
             http_response_code(404);
             exit('CV introuvable.');
         }
+        // Le nom proposé à l'utilisateur ne garde que des caractères sûrs
+        $nomAffiche = preg_replace('/[^A-Za-z0-9._-]+/', '_', $nomAffiche);
+
         header('Content-Type: application/pdf');
-        header('Content-Disposition: inline; filename="cv.pdf"');
+        header('Content-Disposition: ' . ($telecharger ? 'attachment' : 'inline') . '; filename="' . $nomAffiche . '"');
         header('Content-Length: ' . filesize($chemin));
         header('X-Content-Type-Options: nosniff');
         readfile($chemin);

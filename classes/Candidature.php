@@ -3,6 +3,7 @@ require_once __DIR__ . '/Database.php';
 
 class Candidature
 {
+    public const STATUTS = ['en_attente', 'retenue', 'refusee'];
     public function __construct(
         private int $id,
         private int $idCandidat,
@@ -15,7 +16,7 @@ class Candidature
     public static function compter(): int
     {
         $pdo = Database::getConnection();
-        return (int) $pdo->query('SELECT COUNT(*) FROM candidature')->fetchColumn();
+        return (int) $pdo->query ('SELECT COUNT(*) FROM candidature')->fetchColumn();
     }
 
     // Les dernières candidatures, avec le nom du candidat et le titre de l'offre
@@ -100,5 +101,41 @@ class Candidature
         );
         $stmt->execute([':id' => $id, ':c' => $idCandidat]);
         return $stmt->rowCount() > 0;
+    }
+        // Les candidatures reçues par une offre, avec les coordonnées du candidat
+    public static function parOffre(int $idOffre): array
+    {
+        $pdo  = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'SELECT c.id, c.statut, c.date_candidature, c.lettre_motivation,
+                    ca.id AS id_candidat, ca.nom, ca.prenom, ca.email, ca.telephone,
+                    (ca.cv_fichier IS NOT NULL) AS a_cv
+             FROM candidature c
+             INNER JOIN candidat ca ON ca.id = c.id_candidat
+             WHERE c.id_offre = :id
+             ORDER BY c.date_candidature DESC, c.id DESC'
+        );
+        $stmt->execute([':id' => $idOffre]);
+        return $stmt->fetchAll();
+    }
+
+    // Change le statut et renvoie l'identifiant de l'offre (null si la candidature n'existe pas)
+    public static function changerStatut(int $id, string $statut): ?int
+    {
+        if (!in_array($statut, self::STATUTS, true)) {
+            throw new InvalidArgumentException('Statut invalide.');
+        }
+        $pdo  = Database::getConnection();
+
+        $stmt = $pdo->prepare('SELECT id_offre FROM candidature WHERE id = :id');
+        $stmt->execute([':id' => $id]);
+        $idOffre = $stmt->fetchColumn();
+        if ($idOffre === false) {
+            return null;
+        }
+
+        $stmt = $pdo->prepare('UPDATE candidature SET statut = :statut WHERE id = :id');
+        $stmt->execute([':statut' => $statut, ':id' => $id]);
+        return (int) $idOffre;
     }
 }
