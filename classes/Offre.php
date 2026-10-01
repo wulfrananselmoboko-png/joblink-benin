@@ -4,6 +4,8 @@ require_once __DIR__ . '/Database.php';
 class Offre
 {
     public const STATUTS = ['brouillon', 'publiee', 'cloturee'];
+        // Une offre est visible des candidats si elle est publiée et non expirée
+    private const VISIBLE = "o.statut = 'publiee' AND (o.date_limite IS NULL OR o.date_limite >= CURDATE())";
 
     public function __construct(
         private ?int $id,
@@ -146,5 +148,65 @@ class Offre
         $pdo  = Database::getConnection();
         $stmt = $pdo->prepare('DELETE FROM offre WHERE id = :id');
         $stmt->execute([':id' => $id]);
+    }
+        // Recherche côté candidat : mot-clé, secteur, ville, type de contrat
+    public static function rechercher(string $motCle, int $idSecteur, int $idVille, int $idType): array
+    {
+        $sql = 'SELECT o.id, o.titre, o.description, o.salaire, o.date_limite,
+                       e.nom AS entreprise, s.libelle AS secteur,
+                       v.libelle AS ville, t.libelle AS type_contrat
+                FROM offre o
+                INNER JOIN entreprise e   ON e.id = o.id_entreprise
+                INNER JOIN secteur s      ON s.id = o.id_secteur
+                INNER JOIN ville v        ON v.id = o.id_ville
+                INNER JOIN type_contrat t ON t.id = o.id_type_contrat
+                WHERE ' . self::VISIBLE;
+        $params = [];
+
+        if ($motCle !== '') {
+            // Deux noms de paramètres : un même nom ne peut pas être répété
+            $sql .= ' AND (o.titre LIKE :mot1 OR o.description LIKE :mot2)';
+            $like = '%' . addcslashes($motCle, '%_\\') . '%';
+            $params[':mot1'] = $like;
+            $params[':mot2'] = $like;
+        }
+        if ($idSecteur > 0) {
+            $sql .= ' AND o.id_secteur = :secteur';
+            $params[':secteur'] = $idSecteur;
+        }
+        if ($idVille > 0) {
+            $sql .= ' AND o.id_ville = :ville';
+            $params[':ville'] = $idVille;
+        }
+        if ($idType > 0) {
+            $sql .= ' AND o.id_type_contrat = :type';
+            $params[':type'] = $idType;
+        }
+        $sql .= ' ORDER BY o.date_publication DESC, o.id DESC';
+
+        $pdo  = Database::getConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    // Détail d'une offre, seulement si elle est visible des candidats
+    public static function trouverVisible(int $id): ?array
+    {
+        $pdo  = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'SELECT o.id, o.titre, o.description, o.salaire, o.date_limite, o.date_publication,
+                    e.nom AS entreprise, s.libelle AS secteur,
+                    v.libelle AS ville, t.libelle AS type_contrat
+             FROM offre o
+             INNER JOIN entreprise e   ON e.id = o.id_entreprise
+             INNER JOIN secteur s      ON s.id = o.id_secteur
+             INNER JOIN ville v        ON v.id = o.id_ville
+             INNER JOIN type_contrat t ON t.id = o.id_type_contrat
+             WHERE o.id = :id AND ' . self::VISIBLE
+        );
+        $stmt->execute([':id' => $id]);
+        $l = $stmt->fetch();
+        return $l ?: null;
     }
 }

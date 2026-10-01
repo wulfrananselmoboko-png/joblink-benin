@@ -51,4 +51,54 @@ class Candidature
         }
         return $resultat;
     }
+        // Statut de la candidature d'un candidat à une offre (null s'il n'a pas postulé)
+    public static function statutPour(int $idCandidat, int $idOffre): ?string
+    {
+        $pdo  = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT statut FROM candidature WHERE id_candidat = :c AND id_offre = :o');
+        $stmt->execute([':c' => $idCandidat, ':o' => $idOffre]);
+        $statut = $stmt->fetchColumn();
+        return $statut === false ? null : $statut;
+    }
+
+    public static function creer(int $idCandidat, int $idOffre, string $lettre): void
+    {
+        $pdo  = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'INSERT INTO candidature (id_candidat, id_offre, lettre_motivation)
+             VALUES (:c, :o, :lettre)'
+        );
+        $stmt->execute([':c' => $idCandidat, ':o' => $idOffre, ':lettre' => $lettre]);
+    }
+
+    // Toutes les candidatures d'un candidat
+    public static function duCandidat(int $idCandidat): array
+    {
+        $pdo  = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'SELECT c.id, c.statut, c.date_candidature,
+                    o.id AS id_offre, o.titre,
+                    e.nom AS entreprise, v.libelle AS ville
+             FROM candidature c
+             INNER JOIN offre o      ON o.id = c.id_offre
+             INNER JOIN entreprise e ON e.id = o.id_entreprise
+             INNER JOIN ville v      ON v.id = o.id_ville
+             WHERE c.id_candidat = :id
+             ORDER BY c.date_candidature DESC, c.id DESC'
+        );
+        $stmt->execute([':id' => $idCandidat]);
+        return $stmt->fetchAll();
+    }
+
+    // Retire une candidature : seulement la sienne, et seulement si elle est en attente
+    public static function retirer(int $id, int $idCandidat): bool
+    {
+        $pdo  = Database::getConnection();
+        $stmt = $pdo->prepare(
+            "DELETE FROM candidature
+             WHERE id = :id AND id_candidat = :c AND statut = 'en_attente'"
+        );
+        $stmt->execute([':id' => $id, ':c' => $idCandidat]);
+        return $stmt->rowCount() > 0;
+    }
 }
