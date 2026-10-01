@@ -2,6 +2,7 @@ config/config.php
 wp-config.php
 uploads/cv/*
 !uploads/cv/.gitkeep
+!uploads/cv/.htaccess
 .env
 *.log
 Thumbs.db
