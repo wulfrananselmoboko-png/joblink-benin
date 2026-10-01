@@ -15,6 +15,16 @@ function exigerConnexionCandidat(): void
         header('Location: login.php');
         exit;
     }
+
+    // Un compte désactivé ou supprimé par l'administrateur perd son accès tout de suite
+    require_once __DIR__ . '/../../classes/Candidat.php';
+    $candidat = Candidat::trouver((int) $_SESSION['candidat_id']);
+    if (!$candidat || !$candidat->estActif()) {
+        $_SESSION = [];
+        session_destroy();
+        header('Location: login.php');
+        exit;
+    }
 }
 
 // Message affiché une seule fois après une action
