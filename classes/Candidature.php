@@ -35,4 +35,20 @@ class Candidature
         $stmt->execute();
         return $stmt->fetchAll();
     }
+        // Nombre de candidatures d'un candidat, par statut
+    public static function compterParStatut(int $idCandidat): array
+    {
+        $pdo  = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'SELECT statut, COUNT(*) AS nb FROM candidature
+             WHERE id_candidat = :id GROUP BY statut'
+        );
+        $stmt->execute([':id' => $idCandidat]);
+
+        $resultat = ['en_attente' => 0, 'retenue' => 0, 'refusee' => 0];
+        foreach ($stmt->fetchAll() as $ligne) {
+            $resultat[$ligne['statut']] = (int) $ligne['nb'];
+        }
+        return $resultat;
+    }
 }
