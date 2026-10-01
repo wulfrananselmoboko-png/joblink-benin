@@ -18,6 +18,8 @@
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="index.php">Tableau de bord</a></li>
                 <li class="nav-item"><a class="nav-link" href="entreprises.php">Entreprises</a></li>
+                <li class="nav-item"><a class="nav-link" href="offres.php">Offres
+                </a></li>
             </ul>
             <span class="text-white me-3"><?= htmlspecialchars($_SESSION['admin_nom'] ?? '') ?></span>
             <a class="btn btn-outline-light btn-sm" href="logout.php">Déconnexion</a>
