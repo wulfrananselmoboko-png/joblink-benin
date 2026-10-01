@@ -20,6 +20,10 @@
                 <li class="nav-item"><a class="nav-link" href="entreprises.php">Entreprises</a></li>
                 <li class="nav-item"><a class="nav-link" href="offres.php">Offres
                 </a></li>
+                <li class="nav-item"><a class="nav-link" href="candidats.php">Candidats
+                </a></li>
+               <li class="nav-item"><a class="nav-link" href="candidatures.php">Candidatures
+                </a></li>
                 <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Listes</a>
     <ul class="dropdown-menu">
