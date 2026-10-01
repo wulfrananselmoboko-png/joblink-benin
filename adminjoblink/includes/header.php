@@ -20,6 +20,14 @@
                 <li class="nav-item"><a class="nav-link" href="entreprises.php">Entreprises</a></li>
                 <li class="nav-item"><a class="nav-link" href="offres.php">Offres
                 </a></li>
+                <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Listes</a>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="reference.php?type=secteur">Secteurs</a></li>
+        <li><a class="dropdown-item" href="reference.php?type=ville">Villes</a></li>
+        <li><a class="dropdown-item" href="reference.php?type=type_contrat">Types de contrat</a></li>
+    </ul>
+</li>
             </ul>
             <span class="text-white me-3"><?= htmlspecialchars($_SESSION['admin_nom'] ?? '') ?></span>
             <a class="btn btn-outline-light btn-sm" href="logout.php">Déconnexion</a>
