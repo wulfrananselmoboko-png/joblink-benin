@@ -7,3 +7,10 @@ uploads/cv/*
 *.log
 Thumbs.db
 .DS_Store
+# WordPress : on ne publie que le thème personnalisé
+wordpress_joblink/*
+!wordpress_joblink/wp-content/
+wordpress_joblink/wp-content/*
+!wordpress_joblink/wp-content/themes/
+wordpress_joblink/wp-content/themes/*
+!wordpress_joblink/wp-content/themes/joblink-benin/
