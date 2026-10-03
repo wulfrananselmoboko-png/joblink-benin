@@ -12,6 +12,15 @@ function candidatConnecte(): bool
 function exigerConnexionCandidat(): void
 {
     if (!candidatConnecte()) {
+        // On retient la page demandée pour y revenir après la connexion
+        $cible = basename($_SERVER['SCRIPT_NAME']);
+        if (!empty($_SERVER['QUERY_STRING'])) {
+            $cible .= '?' . $_SERVER['QUERY_STRING'];
+        }
+        // Liste stricte : seules nos propres pages sont acceptées
+        if (preg_match('/^[a-z_]+\.php(\?id=\d+)?$/', $cible)) {
+            $_SESSION['retour'] = $cible;
+        }
         header('Location: login.php');
         exit;
     }

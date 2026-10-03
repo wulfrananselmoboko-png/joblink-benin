@@ -28,9 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 session_regenerate_id(true);
                 $_SESSION['candidat_id']  = $candidat->getId();
                 $_SESSION['candidat_nom'] = $candidat->getPrenom() . ' ' . $candidat->getNom();
-                header('Location: index.php');
+                $retour = $_SESSION['retour'] ?? 'index.php';
+                unset($_SESSION['retour']);
+                header('Location: ' . $retour);
                 exit;
-            }
+                 }
         } else {
             // Même message pour un e-mail inconnu et un mauvais mot de passe
             $erreur = 'E-mail ou mot de passe incorrect.';
